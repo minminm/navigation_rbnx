@@ -1,0 +1,14 @@
+services:
+  nav2-bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    network_mode: host
+    shm_size: "1gb"
+    environment:
+      - ROBONIX_ATLAS=${ROBONIX_ATLAS:-localhost:50051}
+      - ROBONIX_DATA_PLANE_HOST=${ROBONIX_DATA_PLANE_HOST:-127.0.0.1}
+      - NAV2_PARAMS_FILE=${NAV2_PARAMS_FILE:-/ws/config/nav2_params.yaml}
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw

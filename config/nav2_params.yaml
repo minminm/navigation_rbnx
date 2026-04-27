@@ -1,0 +1,257 @@
+# Nav2 parameters for Unitree GO2
+# Migrated from go2_semantic_nav_system/assets/navigation/move_base_params.yaml
+# + costmap_common_params.yaml + global/local_costmap_params.yaml
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: false
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /fastlio2/lio_odom
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_compute_path_through_poses_action_bt_node
+      - nav2_smooth_path_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_drive_on_heading_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_goal_updated_condition_bt_node
+      - nav2_globally_updated_goal_condition_bt_node
+      - nav2_is_path_valid_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_truncate_path_action_bt_node
+      - nav2_truncate_path_local_action_bt_node
+      - nav2_goal_updater_node_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_path_expiring_timer_condition
+      - nav2_distance_traveled_condition_bt_node
+      - nav2_single_trigger_bt_node
+      - nav2_goal_updated_controller_bt_node
+      - nav2_navigate_through_poses_action_bt_node
+      - nav2_navigate_to_pose_action_bt_node
+      - nav2_remove_passed_goals_action_bt_node
+      - nav2_planner_selector_bt_node
+      - nav2_controller_selector_bt_node
+      - nav2_goal_checker_selector_bt_node
+      - nav2_controller_cancel_bt_node
+      - nav2_path_longer_on_approach_bt_node
+      - nav2_wait_cancel_bt_node
+      - nav2_spin_cancel_bt_node
+      - nav2_back_up_cancel_bt_node
+      - nav2_drive_on_heading_cancel_bt_node
+
+controller_server:
+  ros__parameters:
+    use_sim_time: false
+    controller_frequency: 10.0       # from move_base controller_frequency
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.3
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+
+    general_goal_checker:
+      stateful: true
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.15        # from move_base DWA xy_goal_tolerance
+      yaw_goal_tolerance: 1.0        # from move_base DWA yaw_goal_tolerance (~60 deg)
+
+    # DWB local planner (ROS2 equivalent of DWA)
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: true
+      # GO2 velocity limits (from move_base DWA config)
+      min_vel_x: -0.2               # from move_base min_vel_x
+      min_vel_y: -0.3               # GO2 lateral motion
+      max_vel_x: 1.2                # from move_base max_vel_x
+      max_vel_y: 0.3                # from move_base max_vel_y
+      max_vel_theta: 2.0            # from move_base max_vel_theta
+      min_speed_xy: 0.1             # from move_base min_vel_trans
+      max_speed_xy: 1.0             # from move_base max_vel_trans
+      min_speed_theta: 0.1          # from move_base min_vel_theta
+      # GO2 acceleration limits
+      acc_lim_x: 3.0                # from move_base acc_lim_x
+      acc_lim_y: 3.0                # from move_base acc_lim_y
+      acc_lim_theta: 6.0            # from move_base acc_lim_theta
+      decel_lim_x: -3.0
+      decel_lim_y: -3.0
+      decel_lim_theta: -6.0
+      # Simulation
+      vx_samples: 8                 # from move_base vx_samples
+      vy_samples: 8                 # from move_base vy_samples
+      vtheta_samples: 20            # from move_base vth_samples
+      sim_time: 2.5                 # from move_base sim_time
+      linear_granularity: 0.05      # from move_base sim_granularity
+      angular_granularity: 0.025
+      transform_tolerance: 0.5
+      xy_goal_tolerance: 0.15
+      trans_stopped_velocity: 0.25
+      short_circuit_trajectory_evaluation: true
+      stateful: true
+      # DWB critics (replacing DWA scoring weights)
+      # NOTE: these weights are initial values migrated from DWA.
+      # Fine-tuning on actual GO2 hardware is required.
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.05      # from move_base occdist_scale
+      PathAlign.scale: 20.0         # from move_base path_distance_bias
+      PathAlign.forward_point_distance: 0.4   # from move_base forward_point_distance
+      GoalAlign.scale: 20.0         # from move_base goal_distance_bias
+      GoalAlign.forward_point_distance: 0.4
+      PathDist.scale: 20.0
+      GoalDist.scale: 20.0
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 5.0         # from move_base local publish_frequency
+      transform_tolerance: 0.5       # from move_base local transform_tolerance
+      global_frame: odom
+      robot_base_frame: base_link
+      use_sim_time: false
+      rolling_window: true
+      width: 3.0                     # from move_base local width
+      height: 3.0                    # from move_base local height
+      resolution: 0.1                # from move_base resolution
+      # GO2 footprint (from move_base costmap_common_params)
+      footprint: "[[0.2, 0.3], [0.2, -0.3], [-0.5, -0.3], [-0.5, 0.3]]"
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /robonix/map/scan_2d           # from mapping_rbnx
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          min_obstacle_height: -999.0            # from move_base (pre-filtered)
+          max_obstacle_height: 999.0
+          obstacle_max_range: 3.5                # from move_base obstacle_range
+          raytrace_max_range: 4.0                # from move_base raytrace_range
+          inf_is_valid: true
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 1.0                 # from move_base cost_scaling_factor
+        inflation_radius: 0.55                   # from move_base inflation_radius
+      always_send_full_costmap: true
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 2.0          # from move_base global update_frequency
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: base_link
+      use_sim_time: false
+      resolution: 0.1                # from move_base resolution
+      track_unknown_space: true
+      footprint: "[[0.2, 0.3], [0.2, -0.3], [-0.5, -0.3], [-0.5, 0.3]]"
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: true
+        map_topic: /robonix/map/occupancy_grid   # from mapping_rbnx
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /robonix/map/scan_2d            # from mapping_rbnx
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          min_obstacle_height: -999.0
+          max_obstacle_height: 999.0
+          obstacle_max_range: 3.5
+          raytrace_max_range: 4.0
+          inf_is_valid: true
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 1.0
+        inflation_radius: 0.55                   # from move_base inflation_radius
+      always_send_full_costmap: true
+
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 1.0  # from move_base planner_frequency
+    use_sim_time: false
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+smoother_server:
+  ros__parameters:
+    use_sim_time: false
+    smoother_plugins: ["simple_smoother"]
+    simple_smoother:
+      plugin: "nav2_smoother::SimpleSmoother"
+      tolerance: 1.0e-10
+      max_its: 1000
+      do_refinement: true
+
+behavior_server:
+  ros__parameters:
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors/DriveOnHeading"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+    global_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.5
+    use_sim_time: false
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 2.0          # from move_base max_vel_theta
+    min_rotational_vel: 0.1
+    rotational_acc_lim: 6.0          # from move_base acc_lim_theta
+
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: false
+    smoothing_frequency: 20.0
+    scale_velocities: false
+    feedback: "OPEN_LOOP"
+    max_velocity: [1.2, 0.3, 2.0]   # from move_base max_vel_x/y/theta
+    min_velocity: [-0.2, -0.3, -2.0]
+    max_accel: [3.0, 3.0, 6.0]      # from move_base acc_lim_x/y/theta
+    max_decel: [-3.0, -3.0, -6.0]
+    odom_topic: /fastlio2/lio_odom   # from mapping_rbnx
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 0.5            # from move_base watchdog (stop_time_buffer)

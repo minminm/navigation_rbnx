@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+proto_gen/
+proto_stubs/
+robonix_mcp_types/
+rbnx-build/
+.env

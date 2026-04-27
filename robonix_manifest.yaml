@@ -1,0 +1,20 @@
+# navigation_rbnx — Nav2 as a Robonix system service
+# Implements robonix/srv/navigation/{navigate,status,cancel} contracts.
+manifestVersion: 1
+
+build:
+  script: scripts/build.sh
+
+package:
+  id: com.go2.navigation
+  name: navigation_rbnx
+  version: 0.1.0
+  vendor: go2
+  description: Nav2-backed navigation service for Robonix (GO2)
+  license: MulanPSL-2.0
+
+nodes:
+  - id: com.go2.navigation
+    type: compose
+    start: |
+      exec docker compose -f docker/compose.yaml up --build nav2-bridge
